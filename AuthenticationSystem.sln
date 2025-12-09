@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthenticationSystem", "AuthenticationSystem.csproj", "{BA1A6D85-961E-47DE-B955-3E26D7A8542F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BA1A6D85-961E-47DE-B955-3E26D7A8542F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA1A6D85-961E-47DE-B955-3E26D7A8542F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA1A6D85-961E-47DE-B955-3E26D7A8542F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA1A6D85-961E-47DE-B955-3E26D7A8542F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

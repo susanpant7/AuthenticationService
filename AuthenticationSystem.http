@@ -1,0 +1,13 @@
+@AuthenticationSystem_HostAddress = http://localhost:5077
+
+POST {{AuthenticationSystem_HostAddress}}/api/auth/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "susan1",
+  "password": "susan",
+  "email": "susan@example.com"
+}
+
+###
