@@ -113,6 +113,12 @@ namespace AuthenticationSystem.Migrations
                 name: "IX_UserRoles_UsersUserId",
                 table: "UserRoles",
                 column: "UsersUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_MobileNumber",
+                table: "Users",
+                column: "MobileNumber",
+                unique: true);
         }
 
         /// <inheritdoc />

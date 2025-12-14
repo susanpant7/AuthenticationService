@@ -10,4 +10,7 @@ public interface IUserService
     Task<User?> GetUserWithLoginToken(Guid userId);
     Task SaveOrUpdateUserRefreshToken(Guid userId, string refreshToken);
     Task<List<Role>> GetRolesByRoleName(List<string> roleNames);
+    Task<UserLoginToken?> GetUserLoginTokenByToken(string token);
+    Task<User?> GetUserByUserId(Guid userId);
+    Task RemoveUserLoginTokenByUserId(Guid userId);
 }

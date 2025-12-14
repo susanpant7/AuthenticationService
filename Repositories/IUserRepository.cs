@@ -12,4 +12,7 @@ public interface IUserRepository
     Task<UserLoginToken?> GetUserLoginTokenByUserIdAsync(Guid userId);
     Task AddUserLoginTokenAsync(UserLoginToken token);
     Task SaveChangesAsync();
+    Task<UserLoginToken?> GetUserLoginToken(string token);
+    Task<User?> GetUserByUserId(Guid userId);
+    Task RemoveUserLoginTokenByUserId(Guid userId);
 }

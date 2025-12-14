@@ -40,7 +40,6 @@ public class UserRepository(AppDbContext db) : IUserRepository
     public async Task<UserLoginToken?> GetUserLoginTokenByUserIdAsync(Guid userId)
     {
         return await db.UserLoginTokens
-            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.UserId == userId);
     }
     
@@ -52,5 +51,29 @@ public class UserRepository(AppDbContext db) : IUserRepository
     public async Task SaveChangesAsync()
     {
         await db.SaveChangesAsync();
+    }
+
+    public async Task<UserLoginToken?> GetUserLoginToken(string token)
+    {
+        return await db.UserLoginTokens.FirstOrDefaultAsync(x => x.RefreshToken == token);
+    }
+
+    public async Task<User?> GetUserByUserId(Guid userId)
+    {
+        return await db.Users
+            .Include(u => u.Roles)
+            .FirstOrDefaultAsync(u => u.UserId == userId);
+    }
+
+    public async Task RemoveUserLoginTokenByUserId(Guid userId)
+    {
+        var token = await db.UserLoginTokens
+            .FirstOrDefaultAsync(t => t.UserId == userId);
+
+        if (token != null)
+        {
+            db.UserLoginTokens.Remove(token);
+            await db.SaveChangesAsync();
+        }
     }
 }

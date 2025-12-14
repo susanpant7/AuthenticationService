@@ -26,6 +26,21 @@ public class UserService(IUserRepository userRepository) : IUserService
         return await userRepository.GetUserWithLoginToken(userId);
     }
     
+    public async Task<UserLoginToken?> GetUserLoginTokenByToken(string token)
+    {
+        return await userRepository.GetUserLoginToken(token);
+    }
+
+    public async Task<User?> GetUserByUserId(Guid userId)
+    {
+        return await userRepository.GetUserByUserId(userId);
+    }
+
+    public async Task RemoveUserLoginTokenByUserId(Guid userId)
+    {
+        await userRepository.RemoveUserLoginTokenByUserId(userId);
+    }
+
     // TODO: Move to roles service class
     public async Task<List<Role>> GetRolesByRoleName(List<string> roleNames)
     {

@@ -1,4 +1,5 @@
 using AuthenticationSystem;
+
 var builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
@@ -10,8 +11,10 @@ services.AddControllers();
 
 // Application Modules
 services.AddDBConnection(configuration);
-services.AddServiceConfig();
+services.RegisterServicesAndRepositories();
 services.AddAuth(configuration);
+
+services.ConfigureCors();
 
 var app = builder.Build();
 
@@ -22,6 +25,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend");
+
+app.UseCustomMiddlewares();
 
 app.UseAuthentication();
 app.UseAuthorization();

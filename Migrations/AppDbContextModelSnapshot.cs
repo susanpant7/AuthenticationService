@@ -101,6 +101,9 @@ namespace AuthenticationSystem.Migrations
 
                     b.HasKey("UserId");
 
+                    b.HasIndex("MobileNumber")
+                        .IsUnique();
+
                     b.ToTable("Users");
                 });
 

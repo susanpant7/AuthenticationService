@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuthenticationSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251209164245_Initial")]
+    [Migration("20251211184654_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -103,6 +103,9 @@ namespace AuthenticationSystem.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.HasKey("UserId");
+
+                    b.HasIndex("MobileNumber")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });

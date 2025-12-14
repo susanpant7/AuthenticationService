@@ -2,9 +2,9 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using AuthenticationSystem.Common;
 using AuthenticationSystem.Entities;
 using AuthenticationSystem.Models;
-using AuthenticationSystem.Responses;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
@@ -13,12 +13,12 @@ namespace AuthenticationSystem.Services;
 public class AuthService(IConfiguration configuration, IUserService userService)
     : IAuthService
     {
-        public async Task<ApiResponse<TokenResponse?>> LoginAsync(LoginRequest request)
+        public async Task<ApiResponse<TokenResponse>> LoginAsync(LoginRequest request)
         {
             var user = await userService.GetUserWithRolesByUserName(request.Username);
             if (user is null)
             {
-                return ApiResponse<TokenResponse?>.Fail("User not found");
+                return ApiResponse<TokenResponse>.ErrorResponse("User not found");
             }
             // user.PasswordHash : FORMAT_MARKER:ALGORITHM_VERSION:ITERATION_COUNT:SALT:HASH_RESULT
             // extracts the salt, algorithm and hashed value
@@ -27,11 +27,16 @@ public class AuthService(IConfiguration configuration, IUserService userService)
             if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password)
                 == PasswordVerificationResult.Failed)
             {
-                return ApiResponse<TokenResponse?>.Fail("Incorrect Password");
+                return ApiResponse<TokenResponse>.ErrorResponse("Incorrect Password");
             }
 
             var tokenResponse = await CreateTokenResponse(user);
-            return new ApiResponse<TokenResponse?>(tokenResponse);
+            return new ApiResponse<TokenResponse>(tokenResponse);
+        }
+
+        public Task<ApiResponse<TokenResponse>> RefreshTokensAsync(RefreshTokenRequest request)
+        {
+            throw new NotImplementedException();
         }
 
         private async Task<TokenResponse> CreateTokenResponse(User user)
@@ -49,12 +54,13 @@ public class AuthService(IConfiguration configuration, IUserService userService)
             if (user is not null)
             {
                 return ApiResponse<bool>
-                    .Fail("User already exists");
+                    .ErrorResponse("User already exists");
             }
 
             var newUser = new User
             {
                 Username = request.Username,
+                MobileNumber = request.MobileNumber
             };
             //
             // This string contains:
@@ -69,33 +75,28 @@ public class AuthService(IConfiguration configuration, IUserService userService)
             var roles = await userService.GetRolesByRoleName(request.Roles);
 
             await userService.CreateUserAsync(newUser, roles);
-            return ApiResponse<bool>.Ok(true, "User registered successfully");
+            return ApiResponse<bool>.SuccessResponse(true, "User registered successfully");
         }
 
-        public async Task<ApiResponse<TokenResponse>> RefreshTokensAsync(RefreshTokenRequest request)
+        public async Task<ApiResponse<TokenResponse>> RefreshTokensAsync(string refreshToken)
         {
-            var validateResponse = await ValidateRefreshTokenAsync(request.UserId, request.RefreshToken);
+            var validateResponse = await ValidateRefreshTokenAsync(refreshToken);
             if (!validateResponse.Success)
-                return ApiResponse<TokenResponse>.Fail(validateResponse.Message??"Unable to refresh token");
+                return ApiResponse<TokenResponse>.ErrorResponse(validateResponse.Title??"Unable to refresh token");
 
             var tokenResponse = await CreateTokenResponse(validateResponse.Data!);
             return new ApiResponse<TokenResponse>(tokenResponse);
         }
 
-        private async Task<ApiResponse<User>> ValidateRefreshTokenAsync(Guid userId, string refreshToken)
+        private async Task<ApiResponse<User>> ValidateRefreshTokenAsync(string refreshToken)
         {
-            var user = await userService.GetUserWithLoginToken(userId);
-            if (user is null)
-                return ApiResponse<User>.Fail("User not found");
-            var token = user?.LoginToken;
-            if (token is null)
-                return ApiResponse<User>.Fail("Token not found");
-            if (token.RefreshToken != refreshToken)
-                return ApiResponse<User>.Fail("Refresh token does not match");
-            if (token.RefreshTokenExpiryTime <= DateTime.UtcNow )
-                return ApiResponse<User>.Fail("Refresh token expired");
-
-            return ApiResponse<User>.Ok(user!,"Refresh token valid");
+            var loginToken = await userService.GetUserLoginTokenByToken(refreshToken);
+            if (loginToken is null)
+                return ApiResponse<User>.ErrorResponse("Token does not exist. Invalid refresh token");
+            if (loginToken.RefreshTokenExpiryTime <= DateTime.UtcNow )
+                return ApiResponse<User>.ErrorResponse("Refresh token expired");
+            var user = await userService.GetUserByUserId(loginToken.UserId);
+            return ApiResponse<User>.SuccessResponse(user!,"Refresh token valid");
         }
 
 
@@ -121,6 +122,7 @@ public class AuthService(IConfiguration configuration, IUserService userService)
             {
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.MobilePhone, user.MobileNumber),
             };
             foreach (var role in user.Roles)
             {
@@ -141,5 +143,10 @@ public class AuthService(IConfiguration configuration, IUserService userService)
             );
 
             return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
+        }
+
+        public async Task LogoutUser(Guid userId)
+        {
+            await userService.RemoveUserLoginTokenByUserId(userId);
         }
     }

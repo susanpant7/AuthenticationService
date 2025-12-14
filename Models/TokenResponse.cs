@@ -1,4 +1,6 @@
-﻿namespace AuthenticationSystem.Models;
+﻿using System.Security.Claims;
+
+namespace AuthenticationSystem.Models;
 
 public class TokenResponse
 {

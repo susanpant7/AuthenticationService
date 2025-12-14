@@ -7,9 +7,19 @@ namespace AuthenticationSystem.Controllers;
 [Route("api/test-auth")]
 public class TestAuthController : ControllerBase
 {
-    [HttpGet]
+    [HttpGet("test")]
+    [AllowAnonymous]
     public IActionResult AuthenticatedOnlyEndpoint()
     {
+        try
+        {
+            throw new BadHttpRequestException("You are not authorized!");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
         return Ok("You are authenticated!");
     }
 
