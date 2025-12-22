@@ -13,6 +13,8 @@ namespace AuthenticationSystem.Services;
 public class AuthService(IConfiguration configuration, IUserService userService)
     : IAuthService
     {
+        private readonly int AccessTokenExpirationInMinutes = 15;
+        private readonly int RefreshTokenExpirationInDays = 7;
         public async Task<ApiResponse<TokenResponse>> LoginAsync(LoginRequest request)
         {
             var user = await userService.GetUserWithRolesByUserName(request.Username);
@@ -44,7 +46,9 @@ public class AuthService(IConfiguration configuration, IUserService userService)
             return new TokenResponse
             {
                 AccessToken = CreateToken(user),
-                RefreshToken = await GenerateAndSaveRefreshTokenAsync(user)
+                RefreshToken = await GenerateAndSaveRefreshTokenAsync(user),
+                AccessTokenExpiryInMinute = AccessTokenExpirationInMinutes,
+                RefreshTokenExpiryInDays =  RefreshTokenExpirationInDays
             };
         }
 
@@ -111,7 +115,7 @@ public class AuthService(IConfiguration configuration, IUserService userService)
         private async Task<string> GenerateAndSaveRefreshTokenAsync(User user)
         {
             var refreshToken = GenerateRefreshToken();
-            await userService.SaveOrUpdateUserRefreshToken(user.UserId, refreshToken);
+            await userService.SaveOrUpdateUserRefreshToken(user.UserId, refreshToken, RefreshTokenExpirationInDays);
             return refreshToken;
         }
 
@@ -138,7 +142,7 @@ public class AuthService(IConfiguration configuration, IUserService userService)
                 issuer: configuration.GetValue<string>("JwtConfigs:Issuer"),
                 audience: configuration.GetValue<string>("JwtConfigs:Audience"),
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(1),
+                expires: DateTime.UtcNow.AddMinutes(AccessTokenExpirationInMinutes),
                 signingCredentials: credentials
             );
 

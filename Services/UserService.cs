@@ -48,7 +48,7 @@ public class UserService(IUserRepository userRepository) : IUserService
     }
 
     // TODO: Move to user login token service class
-    public async Task SaveOrUpdateUserRefreshToken(Guid userId, string refreshToken)
+    public async Task SaveOrUpdateUserRefreshToken(Guid userId, string refreshToken, int expiryInDays)
     {
         // fetch login token record
         var loginToken = await userRepository.GetUserLoginTokenByUserIdAsync(userId);
@@ -59,7 +59,7 @@ public class UserService(IUserRepository userRepository) : IUserService
             {
                 UserId = userId,
                 RefreshToken = refreshToken,
-                RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7) //TODO: dont use hardcoded number
+                RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(expiryInDays)
             };
 
             await userRepository.AddUserLoginTokenAsync(loginToken);

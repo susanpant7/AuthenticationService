@@ -22,16 +22,16 @@ public class AuthController(IAuthService authService) : ControllerBase
 
         return Ok(response);
     }
-    
+
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<ActionResult<TokenResponse>> Login(LoginRequest request)
+    public async Task<ActionResult> Login(LoginRequest request)
     {
         var response = await authService.LoginAsync(request);
         if (!response.Success)
             return BadRequest(response);
 
-        SetRefreshTokenInCookie(response);
+        //SetRefreshTokenInCookie(response);
 
         return Ok(response);
     }
@@ -51,19 +51,24 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpPost("refresh-token")]
-    public async Task<ActionResult<TokenResponse>> RefreshToken()
+    [HttpPost("refresh")]
+    public async Task<ActionResult<TokenResponse>> RefreshToken(RefreshTokenRequest refreshTokenRequest)
     {
         // Get refresh token from HttpOnly cookie
-        if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+        // if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
+        // {
+        //     return Unauthorized(new { success = false, message = "No refresh token" });
+        // }
+        if (string.IsNullOrWhiteSpace(refreshTokenRequest.RefreshToken))
         {
             return Unauthorized(new { success = false, message = "No refresh token" });
         }
-        var response = await authService.RefreshTokensAsync(refreshToken);
+
+        var response = await authService.RefreshTokensAsync(refreshTokenRequest.RefreshToken);
         if (!response.Success)
             return BadRequest(response);
 
-        SetRefreshTokenInCookie(response);
+        //SetRefreshTokenInCookie(response);
         return Ok(response);
     }
     
